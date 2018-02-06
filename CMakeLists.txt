@@ -25,10 +25,12 @@ file(GLOB UTILS_CMAKE_SCRIPTS ${PROJECT_SOURCE_DIR}/cmake/*.cmake)
 
 # Header and sources
 set(UTILS_HEADERS ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/Optional.h
-                  ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/Value.h )
+                  ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/utility/Utility.h
+                  ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/threading/Threadpool.h
+				  ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/threading/ActiveWorker.h)
 
 set(UTILS_SOURCES ${PROJECT_SOURCE_DIR}/src/Optional.cpp
-                  ${PROJECT_SOURCE_DIR}/src/Value.cpp
+                  ${PROJECT_SOURCE_DIR}/src/threading/Threadpool.cpp
                   ${PROJECT_SOURCE_DIR}/src/Main.cpp)
 
 source_group("include\\${PROJECT_NAME}" FILES ${UTILS_HEADERS})
@@ -38,8 +40,10 @@ source_group("cmake" FILES ${UTILS_CMAKE_SCRIPTS})
 # target definitions
 add_library(${PROJECT_NAME} ${UTILS_HEADERS} ${UTILS_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> )
-#target_link_libraries(${PROJECT_NAME} )
-#target_compile_definitions(${PROJECT_NAME} PUBLIC )
+
+# Add executable (for manual testing)
+add_executable(utils_exe ${PROJECT_SOURCE_DIR}/src/Main.cpp)
+target_link_libraries(utils_exe ${PROJECT_NAME})
 
 # Add subdirectories
 if(ENABLE_TESTING)
