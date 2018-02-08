@@ -7,28 +7,37 @@
 
 namespace rboc { namespace utils { namespace optional
 {
-    // NullOpt struct to be able to set a null value.
+    //! NullOpt
+	/*!
+	*  NullOpt struct to be able to set a null value.
+	*/
     struct NullOpt {
 
-        // Literal type to construct NullOpt
+		/*!
+		*  Literal type to construct NullOpt
+		*/ 
         enum class ConstructParam
         {
             Param
         };
+
+		//! NullOpt constructor
         explicit constexpr NullOpt(ConstructParam) {}
     };
 
-    // NullOpt value.
+    //! NullOpt value.
     static constexpr NullOpt nullopt{NullOpt::ConstructParam::Param};
 
-    // class BadOptionalException. Exception to be thrown when an uninitialized Optional is accessed.
+    //! class BadOptionalException. 
+	/*! 
+	 * Exception to be thrown when an uninitialized Optional is accessed.
+	 */
     class BadOptionalException : public std::exception
     {
         public:
-        BadOptionalException()
-        { 
-            // Empty.
-        }
+        BadOptionalException() 
+		{}
+
         virtual const char* what() const noexcept override
         {
             return "bad optional access";
@@ -39,31 +48,23 @@ namespace rboc { namespace utils { namespace optional
 
     namespace details
     {
-        // OptionalStorage class to store values.
+        //! OptionalStorage class
+		/*! 
+		  This is class is designed to manage the storage needed to hold a value of a type
+		  that is not trivially destructible.
+		*/
         template <typename T, bool = !std::is_trivially_destructible<T>::value>
         struct OptionalStorage
         {
-            // Default constructor
+            //! Default constructor
             constexpr OptionalStorage()
             {}
 
             // Nullopt constructor
             constexpr OptionalStorage(NullOpt)
             {}
-
-            // Implicit value copy constructor
-            //constexpr OptionalStorage(const T& other)
-            //    : _value(other)
-            //    , _has_value(true)
-            //{}
-
-            //// Implicit value move constructor
-            //constexpr OptionalStorage(T&& other)
-            //    : _value(std::move(other))
-            //    , _has_value(true)
-            //{}            
-
-            // Destructor            
+			
+            //! Destructor            
             ~OptionalStorage()                
             {
                 if (_has_value)
@@ -72,7 +73,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
             
-            // Copy constructor
+            //! Copy constructor
             constexpr OptionalStorage(const OptionalStorage& other)
             {
                 if (other._has_value)
@@ -81,7 +82,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
-            //// Move constructor
+            //! Move constructor
             constexpr OptionalStorage(OptionalStorage&& other)
             {
                 if (other._has_value)
@@ -91,7 +92,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
-            // Constructor from value of convertible type
+            //! Constructor from optional of convertible type
             template <typename U>
             constexpr OptionalStorage(const OptionalStorage<U>& other)
             {
@@ -101,7 +102,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
-            // Constructor from value of convertible type
+            //! Constructor from optional of convertible type
             template <typename U>
                 constexpr OptionalStorage(OptionalStorage<U>&& other)                
             {
@@ -112,7 +113,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
-            // Implicit forwarding constructor 
+            //! Implicit forwarding constructor 
             template <typename U = T, typename = typename std::enable_if<
                 std::is_convertible<typename std::decay<U>::type, T>::value>::type>
             constexpr OptionalStorage(U&& other)
@@ -120,7 +121,7 @@ namespace rboc { namespace utils { namespace optional
                 , _has_value(true)
             {}
 
-            // Copy assignment
+            //! Copy assignment
             OptionalStorage& operator=(const OptionalStorage& other)                
             {
                 if (other._has_value && this->_has_value)
@@ -141,7 +142,7 @@ namespace rboc { namespace utils { namespace optional
                 return *this;
             }
 
-            // Move assignment            
+            //! Move assignment            
             OptionalStorage& operator=(OptionalStorage&& other)                
             {
                 if (other._has_value && this->_has_value)
@@ -163,14 +164,14 @@ namespace rboc { namespace utils { namespace optional
                 return *this;
             }
 
-            // Nullopt assignment            
+            //! Nullopt assignment            
             OptionalStorage& operator=(NullOpt)
             {
                 this->reset();
                 return *this;
             }
 
-            // Helper to construct values
+            //! Helper to construct values
             template<typename... Args>
             void construct(Args&&... args)
             {
@@ -178,7 +179,7 @@ namespace rboc { namespace utils { namespace optional
                 this->_has_value = true;
             }
 
-            // Helper to reset values
+            //! Helper to reset values
             void reset()
             {
                 if (_has_value)
@@ -189,6 +190,7 @@ namespace rboc { namespace utils { namespace optional
                 }                
             }
 
+			//! Getter
             T& get()
             {
                 assert(_has_value);
@@ -205,30 +207,23 @@ namespace rboc { namespace utils { namespace optional
             bool _has_value = false;
         };
         
-        // OptionalStorage class to store values trivially desctructibles.
+		//! OptionalStorage class
+		/*! 
+		  This is class is designed to manage the storage needed to hold a value of a type
+		  that is trivially destructible.
+		*/
         template <typename T>
         struct OptionalStorage<T, false>
         {
-            // Default constructor
+            //! Default constructor
             constexpr OptionalStorage()
             {}
 
+			//! NullOpt constructor
             constexpr OptionalStorage(NullOpt)
             {}
 
-            // Implicit copy constructor from value
-            //constexpr OptionalStorage(const T& other)
-            //    : _value(other)
-            //    , _has_value(true)
-            //{}
-
-            //// Implicit value move constructor
-            //constexpr OptionalStorage(T&& other)
-            //    : _value(std::move(other))
-            //    , _has_value(true)
-            //{}
-
-            // Copy constructor
+            //! Copy constructor
             constexpr OptionalStorage(const OptionalStorage& other)
             {
                 if (other._has_value)
@@ -237,7 +232,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
-            //// Move constructor
+            //! Move constructor
             constexpr OptionalStorage(OptionalStorage&& other)  
             {
                 if (other._has_value)
@@ -247,7 +242,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
-            // Constructor from value of convertible type
+            //! Constructor from optional of convertible type
             template <typename U>
             constexpr OptionalStorage(const OptionalStorage<U>& other)
             {
@@ -257,7 +252,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
-            // Constructor from value of convertible type
+            //! Constructor from optional of convertible type
             template <typename U>
             constexpr OptionalStorage(OptionalStorage<U> && other)
             {
@@ -268,6 +263,7 @@ namespace rboc { namespace utils { namespace optional
                 }
             }
 
+			//! Implicit forwarding constructor
             template <typename U = T, typename = typename std::enable_if<
                 std::is_convertible<typename std::decay<U>::type, T>::value>::type>
                 constexpr OptionalStorage(U&& other)
@@ -275,7 +271,7 @@ namespace rboc { namespace utils { namespace optional
                 , _has_value(true)
             {}
 
-            // Copy assignment
+            //! Copy assignment
             OptionalStorage& operator=(const OptionalStorage& other)                
             {
                 if (other._has_value && this->_has_value)
@@ -296,7 +292,7 @@ namespace rboc { namespace utils { namespace optional
                 return *this;
             }
 
-            // Move assignment            
+            //! Move assignment            
             OptionalStorage& operator=(OptionalStorage&& other)                
             {
                 if (other._has_value && this->_has_value)
@@ -318,13 +314,14 @@ namespace rboc { namespace utils { namespace optional
                 return *this;
             }
 
-            // Nullopt assignment            
+            //! Nullopt assignment            
             OptionalStorage& operator=(NullOpt)
             {
                 this->reset();
                 return *this;
             }
 
+			//! Function to set the value of the storage.
             template<typename... Args>
             void construct(Args&&... args)
             {
@@ -332,6 +329,7 @@ namespace rboc { namespace utils { namespace optional
                 this->_has_value = true;
             }
 
+			//! Function to reset the valuo  of the storage.
             void reset()
             {
                 if (_has_value)
@@ -341,6 +339,7 @@ namespace rboc { namespace utils { namespace optional
                 }                
             }
 
+			//! Getter
             T& get()
             {
                 assert(_has_value);
@@ -355,8 +354,12 @@ namespace rboc { namespace utils { namespace optional
             };
             bool _has_value = false;
         };
-    }        
-    
+    }
+
+	//! Optional class.
+    /*!
+	  This is a class that manages a value that may or may not be contained.
+	 */
     template <typename T>
     class Optional
     {
@@ -364,32 +367,28 @@ namespace rboc { namespace utils { namespace optional
 
         using value_type = T;
 
-        // -------------------------------------------------------------------------------------------------------------
-        // Constructors, destructor and assignments.
-        // -------------------------------------------------------------------------------------------------------------
-
-        // Default constructor.
+        //! Default constructor.
         constexpr Optional() = default;        
         
-        // NullOpt constructor.
+        //! NullOpt constructor.
         constexpr Optional(NullOpt) 
             : _storage(nullopt)
         {}
 
-        // Destructor.
+        //! Destructor.
         ~Optional() = default;
 
-        // Copy constructor.
+        //! Copy constructor.
         constexpr Optional(const Optional<T>& other)
             : _storage(other._storage)
         {}
 
-        //// Move constructor.
+        //! Move constructor.
         constexpr Optional(Optional<T>&& other)
             : _storage(std::move(other._storage))
         {}
 
-        // Conversion from lvalue constructor.
+        //! Conversion from lvalue constructor.
         template <typename U>
         constexpr Optional(const Optional<U>& other)            
         {
@@ -403,7 +402,7 @@ namespace rboc { namespace utils { namespace optional
             }
         }
 
-        // conversion from rvalue constructor.
+        //! Conversion from rvalue constructor.
         template <typename U>
         constexpr Optional(Optional<U>&& other)            
         {
@@ -418,7 +417,7 @@ namespace rboc { namespace utils { namespace optional
             }
         }
 
-        // Convert constructor from a forwarding reference of other type U&&.
+        //! Conversion constructor from a forwarding reference of other type U&&.
         template <typename U = T, 
             typename = typename std::enable_if<
             std::is_convertible<typename std::decay<U>::type, T>::value>::type>
@@ -426,28 +425,28 @@ namespace rboc { namespace utils { namespace optional
             : _storage(std::forward<U>(value))
         {}
 
-        // Copy assignment.
+        //! Copy assignment.
         Optional<T>& operator=(const Optional<T>& other)
         {
             _storage = other._storage;
             return *this;
         }
         
-        // Move assignment.
+        //! Move assignment.
         Optional<T>& operator=(Optional<T>&& other)
         {
             _storage = std::move(other._storage);
             return *this;
         };
 
-        // Nullopt assignment.
+        //! Nullopt assignment.
         Optional<T>& operator=(NullOpt)
         {
             _storage.reset();
             return *this;
         }
         
-        // Value assignment.
+        //! Value assignment.
         template<typename U>
         typename std::enable_if<std::is_convertible<typename std::decay<U>::type, T>::value, Optional<T>&>::type
             operator=(U&& u)
@@ -463,7 +462,7 @@ namespace rboc { namespace utils { namespace optional
             return *this;
         }
 
-        // lvalue conversion assignment.
+        //! lvalue conversion assignment.
         template<typename U>
         typename std::enable_if<std::is_convertible<typename std::decay<U>::type, T>::value, Optional<T>&>::type            
             operator=(const Optional<U>& u)
@@ -479,7 +478,7 @@ namespace rboc { namespace utils { namespace optional
             return *this;
         }
 
-        // rvalue conversion assignment.
+        //! rvalue conversion assignment.
         template<typename U>
         typename std::enable_if<std::is_convertible<typename std::decay<U>::type,T>::value, Optional<T>&>::type            
             operator=(Optional<U>&& u)
@@ -496,13 +495,14 @@ namespace rboc { namespace utils { namespace optional
 
             return *this;
         }
-
         
         // -------------------------------------------------------------------------------------------------------------
         // Public interface.
         // -------------------------------------------------------------------------------------------------------------
 
         // Observers.
+
+		//! operator->
         constexpr const T* operator->() const
         { 
             if (this->has_value())
@@ -513,8 +513,9 @@ namespace rboc { namespace utils { namespace optional
             {
                 throw BadOptionalException();
             }
-        }    
+        }
 
+		//! operator->
         T* operator->() 
         { 
             if (this->has_value())
@@ -527,6 +528,7 @@ namespace rboc { namespace utils { namespace optional
             }
         }
 
+		//! operator*
         T& operator*(void) &
         {
             if (this->has_value())
@@ -539,6 +541,7 @@ namespace rboc { namespace utils { namespace optional
             }
         }
 
+		//! operator*
         const T& operator*(void) const &
         {
             if (this->has_value())
@@ -551,6 +554,7 @@ namespace rboc { namespace utils { namespace optional
             }
         }
 
+		//! operator*
         T&& operator*() &&
         {
             if (this->has_value())
@@ -563,6 +567,7 @@ namespace rboc { namespace utils { namespace optional
             }
         }
 
+		//! operator*
         const T&& operator*() const &&
         {
             if (this->has_value())
@@ -575,19 +580,19 @@ namespace rboc { namespace utils { namespace optional
             }
         }
 
-        // Operator bool: checks whether the object contains a value 
+        //! Operator bool. Checks whether the object contains a value 
         constexpr explicit operator bool() const
         {
             return _storage._has_value;
         }
 
-        // has_value: checks whether the object contains a value 
+        //! has_value. Checks whether the object contains a value 
         constexpr bool has_value() const
         {
             return _storage._has_value;
         }
 
-        // value: returns the contained value if exists, else throw. 
+        //! value. Returns the contained value if exists, else throw. 
         constexpr const T& value() const &
         {
             if (_storage._has_value)
@@ -600,7 +605,7 @@ namespace rboc { namespace utils { namespace optional
             }
         }
         
-        // Overload for rvalue optional references.
+        //! Overload for rvalue optional references.
         constexpr const T&& value() const &&
         {
             if (_storage._has_value)
@@ -631,189 +636,213 @@ namespace rboc { namespace utils { namespace optional
     };
 
     // -----------------------------------------------------------------------------------------------------------------
-    // Operators.
+    // operators.
     // -----------------------------------------------------------------------------------------------------------------    
     
-    // operator ==
+    //! operator ==
     template <typename T, typename U>
     bool operator == (const Optional<T>& lhs, const Optional<U>& rhs)
     {
         return (lhs && rhs) ? (*lhs == *rhs)  : (!lhs && !rhs);
     }
 
+	//! operator ==
     template <typename T, typename U>
     bool operator == (const T& lhs, const Optional<U>& rhs)
     {
         return rhs && (lhs == *rhs);
     }
 
+	//! operator ==
     template <typename T, typename U>
     bool operator == (const Optional<T>& lhs, const U& rhs)
     {
         return lhs && (*lhs == rhs);
     }
 
+	//! operator ==
     template <typename T>
     bool operator == (const Optional<T>& lhs, NullOpt rhs)
     {
         return !lhs;
     }
 
+	//! operator ==
     template <typename T>
     bool operator == (NullOpt lhs, const Optional<T>& rhs)
     {
         return !rhs;
     }
 
-    // operator !=
+    //! operator !=
     template <typename T, typename U>
     bool operator != (const Optional<T>& lhs, const Optional<U>& rhs)
     {
         return (lhs && rhs) ? (*lhs != *rhs)  : (lhs || rhs);
     }
 
+	//! operator !=
     template <typename T, typename U>
     bool operator != (const T& lhs, const Optional<U>& rhs)
     {
         return rhs && (lhs != *rhs);
     }
 
+	//! operator !=
     template <typename T, typename U>
     bool operator != (const Optional<T>& lhs, const U& rhs)
     {
         return lhs && (*lhs != rhs);
     }
 
+	//! operator !=
     template <typename T>
     bool operator != (const Optional<T>& lhs, NullOpt rhs)
     {
         return static_cast<bool>(lhs);
     }
 
+	//! operator !=
     template <typename T>
     bool operator != (NullOpt lhs, const Optional<T>& rhs)
     {
         return static_cast<bool>(rhs);
     }
 
-    // operator <
+    //! operator <
     template <typename T, typename U>
     bool operator < (const Optional<T>& lhs, const Optional<U>& rhs)
     {
         return rhs && (!lhs || (*lhs < *rhs));
     }
 
+	//! operator <
     template <typename T, typename U>
     bool operator < (const T& lhs, const Optional<U>& rhs)
     {
         return rhs && (lhs < *rhs);
     }
 
+	//! operator <
     template <typename T, typename U>
     bool operator < (const Optional<T>& lhs, const U& rhs)
     {
         return lhs && (*lhs < rhs);
     }
 
+	//! operator <
     template <typename T>
     bool operator < (const Optional<T>& lhs, NullOpt rhs)
     {
         return false;
     }
 
+	//! operator <
     template <typename T>
     bool operator < (NullOpt lhs, const Optional<T>& rhs)
     {
         return static_cast<bool>(rhs);
     }
 
-    // operator <=
+    //! operator <=
     template <typename T, typename U>
     bool operator <= (const Optional<T>& lhs, const Optional<U>& rhs)
     {
         return rhs && (!lhs || (*lhs <= *rhs));
     }
 
+	//! operator <=
     template <typename T, typename U>
     bool operator <= (const T& lhs, const Optional<U>& rhs)
     {
         return rhs && (lhs <= *rhs);
     }
 
+	//! operator <=
     template <typename T, typename U>
     bool operator <= (const Optional<T>& lhs, const U& rhs)
     {
         return lhs && (*lhs <= rhs);
     }
 
+	//! operator <=
     template <typename T>
     bool operator <= (const Optional<T>& lhs, NullOpt rhs)
     {
         return !lhs;
     }
 
+	//! operator <=
     template <typename T>
     bool operator <= (NullOpt lhs, const Optional<T>& rhs)
     {
         return true;
     }
 
-    // operator >
+    //! operator >
     template <typename T, typename U>
     bool operator > (const Optional<T>& lhs, const Optional<U>& rhs)
     {
         return lhs && (!rhs || (*lhs > *rhs));
     }
 
+	//! operator >
     template <typename T, typename U>
     bool operator > (const T& lhs, const Optional<U>& rhs)
     {
         return rhs && (lhs > *rhs);
     }
 
+	//! operator >
     template <typename T, typename U>
     bool operator > (const Optional<T>& lhs, const U& rhs)
     {
         return lhs && (*lhs > rhs);
     }
 
+	//! operator >
     template <typename T>
     bool operator > (const Optional<T>& lhs, NullOpt rhs)
     {
         return lhs.has_value();
     }
 
+	//! operator >
     template <typename T>
     bool operator > (NullOpt lhs, const Optional<T>& rhs)
     {
         return false;
     }
 
-    // operator >=
+    //! operator >=
     template <typename T, typename U>
     bool operator >= (const Optional<T>& lhs, const Optional<U>& rhs)
     {
         return lhs && (!rhs || (*lhs >= *rhs));
     }
 
+	//! operator >=
     template <typename T, typename U>
     bool operator >= (const T& lhs, const Optional<U>& rhs)
     {
         return rhs && (lhs >= *rhs);
     }
 
+	//! operator >=
     template <typename T, typename U>
     bool operator >= (const Optional<T>& lhs, const U& rhs)
     {
         return lhs && (*lhs >= rhs);
     }
 
+	//! operator >=
     template <typename T>
     bool operator >= (const Optional<T>& lhs, NullOpt rhs)
     {
         return true;
     }
 
+	//! operator >=
     template <typename T>
     bool operator >= (NullOpt lhs, const Optional<T>& rhs)
     {

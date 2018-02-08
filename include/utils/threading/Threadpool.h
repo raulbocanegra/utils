@@ -7,24 +7,29 @@
 
 namespace rboc { namespace utils { namespace threading
 {
+	/*! 
+	  This is a Thread Pool class that consists in a vector of ActiveWorkers 
+	  that will have tasks scheduled in a round robin fashion.
+	*/
 	template<typename R, typename... Args>
 	class ThreadPool
 	{
 		public:
 
-		ThreadPool(unsigned num_threads = 1)
-			:_workers(num_threads)
+		//! Default cosntructor
+		ThreadPool()
+			: _workers(1)
 		{}
-
-		void start()
-		{
-			std::lock_guard<std::mutex> lock(_mtx);
-			for (auto& worker : _workers)
-			{
-				worker.start();
-			}
-		}
-
+		
+		//! Explicit constructor
+		explicit ThreadPool(size_t num_threads)
+			: _workers(num_threads)
+		{}
+		
+		//! stop
+		/*!
+		  Stops the thread pool.
+		*/
 		void stop()
 		{
 			std::lock_guard<std::mutex> lock(_mtx);
@@ -34,6 +39,12 @@ namespace rboc { namespace utils { namespace threading
 			}
 		}
 		
+		//! addTask.
+		/*! 
+		  Adds tasks to the thread pool.
+		  \param f the function to be executed.
+		  \param Args... the arguments to be passed to the function f.
+		*/
 		template<typename F>
 		std::future<R> addTask(F&& f, Args... args)
 		{
@@ -44,9 +55,9 @@ namespace rboc { namespace utils { namespace threading
 
 		private:
 
-		unsigned _idx = 0;
+		size_t _idx = 0;
 		std::vector<ActiveWorker<R,Args...>> _workers{1};
-		mutable std::mutex _mtx = {}; // Mutex to protect the workers.
+		mutable std::mutex _mtx = {}; /*! < Mutex to protect the workers. */
 	};
 
 }}} // rboc::utils::threading

@@ -45,7 +45,6 @@ TEST_CASE("Active Worker tests should pass", "[active_worker]")
 		CHECK(worker.isRunning());		
 		worker.stop();
 		auto w3 = fut_w3.get();
-		CHECK(worker.getQueueSize() == 0);
 		CHECK_FALSE(worker.isRunning());
 		CHECK(result_1 == (test + 1));
 		CHECK(fut_w2.get() == (test + 2));
@@ -64,7 +63,6 @@ TEST_CASE("Active Worker tests should pass", "[active_worker]")
 		auto fut_last_result = worker.addWork(inc_lambda);
 		CHECK(worker.isRunning());
 		fut_last_result.get();		
-		CHECK(worker.getQueueSize() == 0);
 		worker.stop();
 		CHECK_FALSE(worker.isRunning());
 		CHECK(test == works);
@@ -79,7 +77,6 @@ TEST_CASE("Active Worker tests should pass", "[active_worker]")
 		CHECK(worker.isRunning());
 		auto w3 = fut_w3.get();
 		worker.stop();		
-		CHECK(worker.getQueueSize() == 0);
 		CHECK_FALSE(worker.isRunning());
 		CHECK(fut_w1.get() == 1);
 		CHECK(fut_w2.get() == 2);

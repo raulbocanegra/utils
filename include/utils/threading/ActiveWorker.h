@@ -10,11 +10,16 @@
 
 namespace rboc { namespace utils { namespace threading
 {
+	/*!
+	  This is a worker class that has a detached thread that extract 
+	  functions and arguments from a queue and executes them.
+	*/
 	template<typename R, typename... Args>
 	class ActiveWorker
 	{
 		public:
 
+		//! Default constructor
 		ActiveWorker()
 			: _running(true)
 			, _queue{}
@@ -22,7 +27,26 @@ namespace rboc { namespace utils { namespace threading
 			std::thread worker_thread(&ActiveWorker::work, this);
 			worker_thread.detach();
 		}
+
+		//! Copy constructor
+		ActiveWorker(const ActiveWorker& other) = default;
+		//! Move constructor
+		ActiveWorker(ActiveWorker&& other) = default;
+		//! Destructor
+		~ActiveWorker()
+		{
+			stop();
+		}
+		//! Copy assignment
+		ActiveWorker& operator=(const ActiveWorker& other) = default;
+		//! Move assignment
+		ActiveWorker& operator=(ActiveWorker&& other) = default;
 		
+		/*! 
+		  Adds work to the worker.
+		  \param f the function to be executed by the worker
+		  \param Args... the arguments to be passed to the function f.
+		*/
 		template<typename F, typename = std::enable_if<!std::is_reference<Args...>::value>::type>
 		std::future<R> addWork(F&& f, Args... args)
 		{			
@@ -38,18 +62,14 @@ namespace rboc { namespace utils { namespace threading
 			return result;
 		}
 		
+		//! Stops the worker.
 		void stop()
 		{
 			_running = false;
 			_empty_queue_cond.notify_one();			
 		}
-		
-		size_t getQueueSize() const
-		{			
-			std::lock_guard<std::mutex> queue_lock(_mtx);
-			return _queue.size();			
-		}
 
+		//! Tells if the worker is running, this means, executing a function or waiting for work.
 		bool isRunning() const
 		{	
 			return _running;			
@@ -81,12 +101,13 @@ namespace rboc { namespace utils { namespace threading
 		std::condition_variable _empty_queue_cond;
 	};
 
-	// Specialization for 0 argument functions.
+	//! Specialization for 0 argument functions.
 	template<typename R>
 	class ActiveWorker<R>
 	{
 		public:
 
+		//! Default constructor
 		ActiveWorker()
 			: _running(true)
 			, _queue{}
@@ -95,6 +116,29 @@ namespace rboc { namespace utils { namespace threading
 			worker_thread.detach();
 		}
 
+		//! Copy constructor
+		ActiveWorker(const ActiveWorker& other) = delete;
+		
+		//! Move constructor
+		ActiveWorker(ActiveWorker&& other) = default;
+		
+		//! Destructor
+		~ActiveWorker()
+		{
+			stop();
+		}
+		
+		//! Copy assignment
+		ActiveWorker& operator=(const ActiveWorker& other) = delete;
+
+		//! Move assignment
+		ActiveWorker& operator=(ActiveWorker&& other) = default;
+		
+		//! addWork.
+		/*! 
+		  Adds work to the worker.
+		  \param f the function to be executed by the worker		
+		*/
 		template<typename F>
 		std::future<R> addWork(F&& f)
 		{			
@@ -108,18 +152,20 @@ namespace rboc { namespace utils { namespace threading
 			return result;
 		}
 		
+		//! stop.
+		/*!
+		  Stops the worker.
+		*/
 		void stop()
 		{
 			_running = false;
 			_empty_queue_cond.notify_one();			
 		}
 
-		size_t getQueueSize() const
-		{			
-			std::lock_guard<std::mutex> queue_lock(_mtx);
-			return _queue.size();			
-		}
-
+		//! isRunning.
+		/*!
+		  Tells if the worker is running, this means, executing a function or waiting for work.
+		*/
 		bool isRunning() const
 		{	
 			return _running;			
