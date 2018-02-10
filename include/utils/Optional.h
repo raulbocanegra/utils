@@ -14,7 +14,7 @@ namespace rboc { namespace utils { namespace optional
     struct NullOpt {
 
 		/*!
-		*  Literal type to construct NullOpt
+		  Literal type to construct NullOpt
 		*/ 
         enum class ConstructParam
         {
@@ -30,8 +30,8 @@ namespace rboc { namespace utils { namespace optional
 
     //! class BadOptionalException. 
 	/*! 
-	 * Exception to be thrown when an uninitialized Optional is accessed.
-	 */
+	  Exception to be thrown when an uninitialized Optional is accessed.
+	*/
     class BadOptionalException : public std::exception
     {
         public:
