@@ -237,7 +237,7 @@ namespace rboc { namespace utils { namespace optional
             {
                 if (other._has_value)
                 {
-                    this->construct(std::move(other._value));
+                    this->construct(std::move(other)._value);
                     other.reset();
                 }
             }
