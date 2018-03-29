@@ -5,6 +5,12 @@ project(utils C CXX)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 include(cmake/platform.cmake)
 
+option(USE_CONAN "Use Conan Package Manager to deal with dependencies" ON)
+if(USE_CONAN)
+	include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+	conan_basic_setup()
+endif()
+
 message("Build: ${CMAKE_GENERATOR}")
 
 set_platform_properties()
@@ -60,14 +66,12 @@ option(BUILD_DOC "Build documentation" ON)
 if(BUILD_DOC)
 	find_package(Doxygen)
 	if (DOXYGEN_FOUND)
-    
-		message("DOXYGEN_EXECUTABLE=${DOXYGEN_EXECUTABLE}")
-		set(DOXYGEN_GENERATE_HTML YES)
-	
-		doxygen_add_docs(doc_doxygen ${UTILS_HEADERS} COMMENT "Generating API documentation with Doxygen")
-		
+    	set(DOXYGEN_GENERATE_HTML YES)
+		set(DOXYGEN_GENERATE_LATEX YES)
+		doxygen_add_docs(headers_doc ${UTILS_HEADERS} ${PROJECT_SOURCE_DIR}/Readme.md COMMENT "Generating API documentation with Doxygen")
+		#doxygen_add_docs(user_doc ${PROJECT_SOURCE_DIR}/Readme.md COMMENT "Generating User documentation with Doxygen")
 	else ()
-		message("Doxygen need to be installed to generate the doxygen documentation")
+		message("Doxygen needs to be installed to generate the doxygen documentation")
 	endif ()
 endif()
 
