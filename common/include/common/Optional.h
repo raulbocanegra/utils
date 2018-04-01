@@ -8,14 +8,14 @@
 namespace rboc { namespace utils { namespace optional
 {
     //! NullOpt
-	/*!
-	*  NullOpt struct to be able to set a null value.
-	*/
+	/**
+	 *  NullOpt struct to be able to set a null value.
+	 */
     struct NullOpt {
 
-		/*!
-		  Literal type to construct NullOpt
-		*/ 
+		/**
+	 	 * Literal type to construct NullOpt
+		 */ 
         enum class ConstructParam
         {
             Param
@@ -29,9 +29,9 @@ namespace rboc { namespace utils { namespace optional
     static constexpr NullOpt nullopt{NullOpt::ConstructParam::Param};
 
     //! class BadOptionalException. 
-	/*! 
-	  Exception to be thrown when an uninitialized Optional is accessed.
-	*/
+	/** 
+	 * Exception to be thrown when an uninitialized Optional is accessed.
+	 */
     class BadOptionalException : public std::exception
     {
         public:
@@ -49,10 +49,10 @@ namespace rboc { namespace utils { namespace optional
     namespace details
     {
         //! OptionalStorage class
-		/*! 
-		  This is class is designed to manage the storage needed to hold a value of a type
-		  that is not trivially destructible.
-		*/
+		/** 
+		 * This is class is designed to manage the storage needed to hold a value of a type
+		 * that is not trivially destructible.
+		 */
         template <typename T, bool = !std::is_trivially_destructible<T>::value>
         struct OptionalStorage
         {
@@ -74,7 +74,7 @@ namespace rboc { namespace utils { namespace optional
             }
             
             //! Copy constructor
-            constexpr OptionalStorage(const OptionalStorage& other)
+            OptionalStorage(const OptionalStorage& other)
             {
                 if (other._has_value)
                 {
@@ -83,7 +83,7 @@ namespace rboc { namespace utils { namespace optional
             }
 
             //! Move constructor
-            constexpr OptionalStorage(OptionalStorage&& other)
+            OptionalStorage(OptionalStorage&& other)
             {
                 if (other._has_value)
                 {
@@ -94,7 +94,7 @@ namespace rboc { namespace utils { namespace optional
 
             //! Constructor from optional of convertible type
             template <typename U>
-            constexpr OptionalStorage(const OptionalStorage<U>& other)
+            OptionalStorage(const OptionalStorage<U>& other)
             {
                 if (other._has_value)
                 {
@@ -104,7 +104,7 @@ namespace rboc { namespace utils { namespace optional
 
             //! Constructor from optional of convertible type
             template <typename U>
-                constexpr OptionalStorage(OptionalStorage<U>&& other)                
+            OptionalStorage(OptionalStorage<U>&& other)                
             {
                 if (other._has_value)
                 {
@@ -208,10 +208,10 @@ namespace rboc { namespace utils { namespace optional
         };
         
 		//! OptionalStorage class
-		/*! 
-		  This is class is designed to manage the storage needed to hold a value of a type
-		  that is trivially destructible.
-		*/
+		/** 
+		 * This is class is designed to manage the storage needed to hold a value of a type
+		 * that is trivially destructible.
+		 */
         template <typename T>
         struct OptionalStorage<T, false>
         {
@@ -224,7 +224,7 @@ namespace rboc { namespace utils { namespace optional
             {}
 
             //! Copy constructor
-            constexpr OptionalStorage(const OptionalStorage& other)
+            OptionalStorage(const OptionalStorage& other)
             {
                 if (other._has_value)
                 {
@@ -233,7 +233,7 @@ namespace rboc { namespace utils { namespace optional
             }
 
             //! Move constructor
-            constexpr OptionalStorage(OptionalStorage&& other)  
+            OptionalStorage(OptionalStorage&& other)  
             {
                 if (other._has_value)
                 {
@@ -244,7 +244,7 @@ namespace rboc { namespace utils { namespace optional
 
             //! Constructor from optional of convertible type
             template <typename U>
-            constexpr OptionalStorage(const OptionalStorage<U>& other)
+            OptionalStorage(const OptionalStorage<U>& other)
             {
                 if (other._has_value)
                 {
@@ -254,7 +254,7 @@ namespace rboc { namespace utils { namespace optional
 
             //! Constructor from optional of convertible type
             template <typename U>
-            constexpr OptionalStorage(OptionalStorage<U> && other)
+            OptionalStorage(OptionalStorage<U> && other)
             {
                 if (other._has_value)
                 {
@@ -266,7 +266,7 @@ namespace rboc { namespace utils { namespace optional
 			//! Implicit forwarding constructor
             template <typename U = T, typename = typename std::enable_if<
                 std::is_convertible<typename std::decay<U>::type, T>::value>::type>
-                constexpr OptionalStorage(U&& other)
+            constexpr OptionalStorage(U&& other)
                 : _value(std::forward<U>(other))
                 , _has_value(true)
             {}
@@ -357,8 +357,8 @@ namespace rboc { namespace utils { namespace optional
     }
 
 	//! Optional class.
-    /*!
-	  This is a class that manages a value that may or may not be contained.
+    /**
+	 * This is a class that manages a value that may or may not be contained.
 	 */
     template <typename T>
     class Optional
@@ -390,7 +390,7 @@ namespace rboc { namespace utils { namespace optional
 
         //! Conversion from lvalue constructor.
         template <typename U>
-        constexpr Optional(const Optional<U>& other)            
+        Optional(const Optional<U>& other)            
         {
             if (other.has_value())
             {
@@ -404,7 +404,7 @@ namespace rboc { namespace utils { namespace optional
 
         //! Conversion from rvalue constructor.
         template <typename U>
-        constexpr Optional(Optional<U>&& other)            
+        Optional(Optional<U>&& other)            
         {
             if (other.has_value())
             {
@@ -593,29 +593,21 @@ namespace rboc { namespace utils { namespace optional
         }
 
         //! value. Returns the contained value if exists, else throw. 
-        constexpr const T& value() const &
+        const T& value() const &
         {
-            if (_storage._has_value)
-            {
-                return _storage._value;
-            }
-            else
-            {
-                throw BadOptionalException();
-            }
+            if (!_storage._has_value)
+            	throw BadOptionalException();
+                
+			return _storage._value;
         }
         
         //! Overload for rvalue optional references.
-        constexpr const T&& value() const &&
+        const T&& value() const &&
         {
-            if (_storage._has_value)
-            {
-                return std::move(_storage._value);
-            }
-            else
-            {
-                throw BadOptionalException();
-            }
+            if (!_storage._has_value)
+            	throw BadOptionalException();
+
+			return std::move(_storage._value);
         }
 
         template< class U >

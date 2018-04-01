@@ -30,7 +30,7 @@ namespace rboc { namespace utils { namespace utilities {
 	}	
 
 	//! call_task is a template function to call the function F with the arguments passed as a Tuple.
-	/*! 
+	/** 
 	 * Is useful to be used inside our ActiveWorker class
 	 * \param f, the function to be called 
 	 * \param tup, the tuple that stores the argumenst of the call to f.

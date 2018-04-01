@@ -6,14 +6,15 @@
 #include <future>
 #include <atomic>
 #include <type_traits>
-#include <utils/utility/Utility.h>
+#include <common/Utility.h>
 
 namespace rboc { namespace utils { namespace threading
 {
-	/*!
-	  This is a worker class that has a detached thread that extract 
-	  functions and arguments from a queue and executes them.
-	*/
+	//! class ActiveWorker
+	/**
+	 * This is a worker class that has a detached thread that extract 
+	 * functions and arguments from a queue and executes them.
+	 */
 	template<typename R, typename... Args>
 	class ActiveWorker
 	{
@@ -23,9 +24,9 @@ namespace rboc { namespace utils { namespace threading
 		ActiveWorker()
 			: _running(true)
 			, _queue{}
+			, _worker()
 		{
-			std::thread worker_thread(&ActiveWorker::work, this);
-			worker_thread.detach();
+			_worker = std::thread(&ActiveWorker::work, this);
 		}
 
 		//! Copy constructor
@@ -35,19 +36,21 @@ namespace rboc { namespace utils { namespace threading
 		//! Destructor
 		~ActiveWorker()
 		{
-			stop();
+			_running = false;
+			_empty_queue_cond.notify_one();
+			_worker.join();
 		}
 		//! Copy assignment
 		ActiveWorker& operator=(const ActiveWorker& other) = default;
 		//! Move assignment
 		ActiveWorker& operator=(ActiveWorker&& other) = default;
 		
-		/*! 
-		  Adds work to the worker.
-		  \param f the function to be executed by the worker
-		  \param Args... the arguments to be passed to the function f.
-		*/
-		template<typename F, typename = std::enable_if<!std::is_reference<Args...>::value>::type>
+		/**
+		 * Adds work to the worker.
+		 * \param f the function to be executed by the worker
+		 * \param Args... the arguments to be passed to the function f.
+		 */
+		template<typename F, typename = typename std::enable_if<!std::is_reference<Args...>::value>::type>
 		std::future<R> addWork(F&& f, Args... args)
 		{			
 			static_assert(sizeof...(args) == std::tuple_size<std::tuple<Args...>>::value,
@@ -60,19 +63,6 @@ namespace rboc { namespace utils { namespace threading
 			}
 			_empty_queue_cond.notify_one();
 			return result;
-		}
-		
-		//! Stops the worker.
-		void stop()
-		{
-			_running = false;
-			_empty_queue_cond.notify_one();			
-		}
-
-		//! Tells if the worker is running, this means, executing a function or waiting for work.
-		bool isRunning() const
-		{	
-			return _running;			
 		}
 
 		private:
@@ -97,6 +87,7 @@ namespace rboc { namespace utils { namespace threading
 		// Private members.
 		std::atomic_bool _running;
 		std::deque<std::pair<std::packaged_task<R(Args...)>, std::tuple<Args...>>> _queue;
+		std::thread _worker;
 		mutable std::mutex _mtx; // Mutex to protect the queue and running bool.
 		std::condition_variable _empty_queue_cond;
 	};
@@ -111,9 +102,9 @@ namespace rboc { namespace utils { namespace threading
 		ActiveWorker()
 			: _running(true)
 			, _queue{}
+			, _worker()
 		{
-			std::thread worker_thread(&ActiveWorker::work, this);
-			worker_thread.detach();
+			_worker = std::thread(&ActiveWorker::work, this);
 		}
 
 		//! Copy constructor
@@ -125,7 +116,9 @@ namespace rboc { namespace utils { namespace threading
 		//! Destructor
 		~ActiveWorker()
 		{
-			stop();
+			_running = false;
+			_empty_queue_cond.notify_one();
+			_worker.join();
 		}
 		
 		//! Copy assignment
@@ -135,10 +128,10 @@ namespace rboc { namespace utils { namespace threading
 		ActiveWorker& operator=(ActiveWorker&& other) = default;
 		
 		//! addWork.
-		/*! 
-		  Adds work to the worker.
-		  \param f the function to be executed by the worker		
-		*/
+		/** 
+		 * Adds work to the worker.
+		 * \param f the function to be executed by the worker		
+		 */
 		template<typename F>
 		std::future<R> addWork(F&& f)
 		{			
@@ -150,25 +143,6 @@ namespace rboc { namespace utils { namespace threading
 			}
 			_empty_queue_cond.notify_one();
 			return result;
-		}
-		
-		//! stop.
-		/*!
-		  Stops the worker.
-		*/
-		void stop()
-		{
-			_running = false;
-			_empty_queue_cond.notify_one();			
-		}
-
-		//! isRunning.
-		/*!
-		  Tells if the worker is running, this means, executing a function or waiting for work.
-		*/
-		bool isRunning() const
-		{	
-			return _running;			
 		}
 
 		private:
@@ -193,7 +167,8 @@ namespace rboc { namespace utils { namespace threading
 		// Private members.
 		std::atomic_bool _running;
 		std::deque<std::packaged_task<R()>> _queue;
-		mutable std::mutex _mtx = {}; // Mutex to protect the queue and running bool.
+		std::thread _worker;
+		mutable std::mutex _mtx; // Mutex to protect the queue and running bool.
 		std::condition_variable _empty_queue_cond;
 	};
 

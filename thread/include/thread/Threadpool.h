@@ -3,14 +3,14 @@
 #define THREADING_THREADPOOL_HEADER
 
 #include <vector>
-#include <utils/threading/ActiveWorker.h>
+#include <thread/ActiveWorker.h>
 
 namespace rboc { namespace utils { namespace threading
 {
 	/*! 
-	  This is a Thread Pool class that consists in a vector of ActiveWorkers 
-	  that will have tasks scheduled in a round robin fashion.
-	*/
+	 * This is a Thread Pool class that consists in a vector of ActiveWorkers 
+	 * that will have tasks scheduled in a round robin fashion.
+	 */
 	template<typename R, typename... Args>
 	class ThreadPool
 	{
@@ -28,8 +28,8 @@ namespace rboc { namespace utils { namespace threading
 		
 		//! stop
 		/*!
-		  Stops the thread pool.
-		*/
+		 * Stops the thread pool.
+		 */
 		void stop()
 		{
 			std::lock_guard<std::mutex> lock(_mtx);
@@ -40,11 +40,11 @@ namespace rboc { namespace utils { namespace threading
 		}
 		
 		//! addTask.
-		/*! 
-		  Adds tasks to the thread pool.
-		  \param f the function to be executed.
-		  \param Args... the arguments to be passed to the function f.
-		*/
+		/** 
+		 * Adds tasks to the thread pool.
+		 * \param f the function to be executed.
+		 * \param Args... the arguments to be passed to the function f.
+		 */
 		template<typename F>
 		std::future<R> addTask(F&& f, Args... args)
 		{
@@ -61,4 +61,4 @@ namespace rboc { namespace utils { namespace threading
 	};
 
 }}} // rboc::utils::threading
-#endif THREADING_THREADPOOL_HEADER
+#endif // THREADING_THREADPOOL_HEADER

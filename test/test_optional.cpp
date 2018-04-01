@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-#include <utils/Optional.h>
+#include <common/Optional.h>
 
 using namespace rboc::utils::optional;
 

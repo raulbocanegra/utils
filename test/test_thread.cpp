@@ -2,9 +2,9 @@
 #include <catch.hpp>
 
 #include <utility>
-#include <utils/threading/ActiveWorker.h>
-#include <utils/threading/ThreadPool.h>
-#include <utils/utility/Utility.h>
+#include <thread/ActiveWorker.h>
+#include <thread/Threadpool.h>
+#include <common/Utility.h>
 
 using namespace rboc::utils;
 using namespace rboc::utils::threading;
@@ -14,11 +14,6 @@ namespace // Anonymous namespace for test functions
 	int increment(int i)
 	{
 		return ++i;
-	}
-
-	void increment_ref(int& i)
-	{
-		++i;
 	}
 	
 	struct Incrementer
@@ -42,10 +37,7 @@ TEST_CASE("Active Worker tests should pass", "[active_worker]")
 		Incrementer inc;
 		auto fut_w3 = worker.addWork(std::bind(&Incrementer::increment, &inc, std::placeholders::_1), result_1);
 		
-		CHECK(worker.isRunning());		
-		worker.stop();
 		auto w3 = fut_w3.get();
-		CHECK_FALSE(worker.isRunning());
 		CHECK(result_1 == (test + 1));
 		CHECK(fut_w2.get() == (test + 2));
 		CHECK(w3 == (test + 2));
@@ -61,10 +53,7 @@ TEST_CASE("Active Worker tests should pass", "[active_worker]")
 			worker.addWork(inc_lambda);
 		}		
 		auto fut_last_result = worker.addWork(inc_lambda);
-		CHECK(worker.isRunning());
 		fut_last_result.get();		
-		worker.stop();
-		CHECK_FALSE(worker.isRunning());
 		CHECK(test == works);
 	}
 	SECTION("ActiveWorker<int> with no args should pass")
@@ -74,10 +63,7 @@ TEST_CASE("Active Worker tests should pass", "[active_worker]")
 		auto fut_w1 = worker.addWork([&]{ return ++test; });
 		auto fut_w2 = worker.addWork([&]{ return ++test; });
 		auto fut_w3 = worker.addWork([&]{ return ++test; });
-		CHECK(worker.isRunning());
 		auto w3 = fut_w3.get();
-		worker.stop();		
-		CHECK_FALSE(worker.isRunning());
 		CHECK(fut_w1.get() == 1);
 		CHECK(fut_w2.get() == 2);
 		CHECK(w3 == 3);
@@ -102,7 +88,7 @@ TEST_CASE("ThreadPool tests should pass", "[thread_pool]")
 			results.emplace_back(tp.addTask(task));
 		}
 		// when all are ready
-		std::for_each(results.begin(), results.end(), [](auto& fut) { fut.get(); });
+		std::for_each(results.begin(), results.end(), [](std::future<void>& fut) { fut.get(); });
 		CHECK(inc == 10000);		
 	}
 }
