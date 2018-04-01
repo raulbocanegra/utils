@@ -7,7 +7,9 @@ using namespace rboc::utils::scheduler;
 // Constant to calculate time in 100ns fragments.
 static constexpr int32_t ONE_SECOND = 10000000;
 
-//! SchedulerData
+/**
+ * SchedulerData
+ */
 struct rboc::utils::scheduler::SchedulerData
 {
 	explicit SchedulerData(
@@ -26,9 +28,8 @@ struct rboc::utils::scheduler::SchedulerData
 	std::function<void(void)> _callback = nullptr;
 };
 
-//! platform_deleter
 /**
- * Custom deleter for unique_ptr<SchedulerData> to free Windows timer resources
+ * platform_deleter: Custom deleter for unique_ptr<SchedulerData> to free Windows timer resources
  */
 void platform_deleter(rboc::utils::scheduler::SchedulerData* p)
 {
@@ -37,11 +38,17 @@ void platform_deleter(rboc::utils::scheduler::SchedulerData* p)
 	CloseThreadpoolTimer(p->_timer);
 }
 
-void rboc::utils::scheduler::Scheduler::start()
+/**
+ * start
+ */
+void Scheduler::start()
 {
 
 }
 
+/**
+ * timerCallback: The callback to be used by CreateThreadpoolTimer.
+ */
 static VOID CALLBACK timerCallback(
 	PTP_CALLBACK_INSTANCE Instance,
 	PVOID                 Context,
@@ -53,7 +60,9 @@ static VOID CALLBACK timerCallback(
 	sched_data_ptr->_callback();
 }
 
-//! addPeriodicTask
+/**
+ * addPeriodicTask
+ */
 void Scheduler::addPeriodicTask(
 	const std::string & name, time_t period, const std::function<void(void)>& callback, int & error)
 {
