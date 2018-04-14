@@ -155,7 +155,7 @@ namespace rboc { namespace utils { namespace threading
 				std::unique_lock<std::mutex> cond_lock(_mtx);
 				_empty_queue_cond.wait(cond_lock, [this](){ return !_queue.empty() || !_running; });
 
-				if (!_running) break;
+				if (!_running && _queue.empty()) break;
 
 				auto task = std::move(_queue.front());
 				_queue.pop_front();
